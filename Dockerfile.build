@@ -5,7 +5,8 @@ RUN npm install
 COPY . .
 RUN npm run lint
 RUN npm run test:unit
-RUN npm run build
+
+RUN CI=true npm run build
 
 # production stage
 FROM nginx:stable-alpine as production-stage
