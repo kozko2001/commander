@@ -1,0 +1,36 @@
+kind: pipeline
+name: default
+
+steps:
+- name: clean
+  image: docker:dind
+  privileged: true
+  volumes:
+  - name: dockersock
+    path: /var/run/docker.sock
+  commands:
+  - docker system prune -f
+  - docker rm -f commander|| true
+  - docker rmi -f commander
+
+- name: build
+  image: docker:dind
+  privileged: true
+  volumes:
+  - name: dockersock
+    path: /var/run/docker.sock
+  commands:
+  - docker build -f Dockerfile.build --tag commander  --force-rm .
+- name: deploy
+  image: docker:dind
+  privileged: true
+  volumes:
+  - name: dockersock
+    path: /var/run/docker.sock
+  commands:
+  - docker run --name commander -e VIRTUAL_HOST="commander.allocsoc.net" -e LETSENCRYPT_HOST=commander.allocsoc.net   -e LETSENCRYPT_EMAIL=kozko2001@gmail.com --restart=always   --network nginx-bridge   -d commander
+#
+volumes:
+- name: dockersock
+  host:
+    path: /var/run/docker.sock
